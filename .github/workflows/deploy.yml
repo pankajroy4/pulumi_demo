@@ -77,10 +77,22 @@ jobs:
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+
       - name: Select stack
-        run: pulumi stack select production
+        run: pulumi stack select production || pulumi stack init production
+        working-directory: infra
+
+      - name: Pulumi Preview
+        run: pulumi preview
         working-directory: infra
 
       - name: Deploy infrastructure
-        run: pulumi up --yes
+        run: pulumi up --yes --non-interactive
         working-directory: infra

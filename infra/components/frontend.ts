@@ -63,7 +63,7 @@ export function createFrontend( name: string, rg: any, location: string, apiUrl:
           tier: "Free",
       },
       // 1. Point this to your actual repository URL
-      repositoryUrl: "https://github.com/your-org/repo-root", 
+      repositoryUrl: "https://github.com/pankajroy4/pulumi_demo", 
       branch: "main",
 
       // 2. Define where the code is in your monorepo
