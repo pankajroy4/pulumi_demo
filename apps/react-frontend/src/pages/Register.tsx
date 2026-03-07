@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import RegisterForm from '../features/auth/RegisterForm'
+import { Link } from "react-router-dom";
+import RegisterForm from "../features/auth/RegisterForm";
 
 export default function Register() {
   return (
@@ -10,8 +10,11 @@ export default function Register() {
             Create a new account
           </h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-primary hover:text-primary/80">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="font-medium text-primary hover:text-primary/80"
+            >
               Sign in here
             </Link>
           </p>
@@ -19,5 +22,5 @@ export default function Register() {
         <RegisterForm />
       </div>
     </div>
-  )
+  );
 }

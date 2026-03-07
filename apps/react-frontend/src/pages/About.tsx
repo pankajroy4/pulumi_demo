@@ -1,6 +1,6 @@
 interface TechItemProps {
-  title: string
-  description: string
+  title: string;
+  description: string;
 }
 
 export default function About() {
@@ -9,12 +9,15 @@ export default function About() {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4 text-foreground">About Us</h1>
         <p className="text-xl text-muted-foreground">
-          This is a modern full-stack application built with cutting-edge technologies
+          This is a modern full-stack application built with cutting-edge
+          technologies
         </p>
       </div>
 
       <div className="bg-card text-card-foreground rounded-lg shadow-sm p-8 mb-8">
-        <h2 className="text-2xl font-semibold mb-6 text-card-foreground">Tech Stack</h2>
+        <h2 className="text-2xl font-semibold mb-6 text-card-foreground">
+          Tech Stack
+        </h2>
         <ul className="space-y-4">
           <TechItem
             title="React 19"
@@ -36,16 +39,20 @@ export default function About() {
       </div>
 
       <div className="bg-card text-card-foreground rounded-lg shadow-sm p-8">
-        <h2 className="text-2xl font-semibold mb-6 text-card-foreground">Project Goals</h2>
+        <h2 className="text-2xl font-semibold mb-6 text-card-foreground">
+          Project Goals
+        </h2>
         <ul className="list-disc list-inside space-y-3 text-muted-foreground">
           <li>Demonstrate modern full-stack development practices</li>
-          <li>Provide a solid foundation for building production applications</li>
+          <li>
+            Provide a solid foundation for building production applications
+          </li>
           <li>Showcase the latest features from React and FastAPI</li>
           <li>Implement responsive design with dark mode support</li>
         </ul>
       </div>
     </div>
-  )
+  );
 }
 
 function TechItem({ title, description }: TechItemProps) {
@@ -56,5 +63,5 @@ function TechItem({ title, description }: TechItemProps) {
         <p className="text-muted-foreground">{description}</p>
       </div>
     </li>
-  )
+  );
 }

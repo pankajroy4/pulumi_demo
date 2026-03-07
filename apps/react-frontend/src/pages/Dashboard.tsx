@@ -1,14 +1,14 @@
-import { Suspense } from 'react'
-import { ChartColumnIncreasing, Clock1, Zap } from 'lucide-react'
-import { useAppDispatch } from '../context/AppContext'
-import { showNotification } from '../context/AppContext'
+import { Suspense } from "react";
+import { ChartColumnIncreasing, Clock1, Zap } from "lucide-react";
+import { useAppDispatch } from "../context/AppContext";
+import { showNotification } from "../context/AppContext";
 
 export default function Dashboard() {
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
   const handleCardClick = (title: string) => {
-    showNotification(dispatch, `Clicked ${title} card`, 'info')
-  }
+    showNotification(dispatch, `Clicked ${title} card`, "info");
+  };
 
   return (
     <div className="space-y-8">
@@ -49,7 +49,7 @@ export default function Dashboard() {
         </div>
       </Suspense>
     </div>
-  )
+  );
 }
 
 function DashboardCard({
@@ -58,10 +58,10 @@ function DashboardCard({
   icon,
   onClick,
 }: {
-  title: string
-  description: string
-  icon: React.ReactNode
-  onClick: (title: string) => void
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  onClick: (title: string) => void;
 }) {
   return (
     <div
@@ -88,5 +88,5 @@ function DashboardCard({
         </div>
       </div>
     </div>
-  )
+  );
 }

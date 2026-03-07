@@ -1,29 +1,29 @@
-import { Suspense } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { CircleCheck, Sparkles } from 'lucide-react'
-import { ErrorBoundary } from '../features/health/ErrorBoundary'
-import { HealthStatus } from '../features/health/HealthStatus'
-import { LoadingStatus } from '../features/health/LoadingStatus'
-import { Button } from '../components/ui/Button'
+import { Suspense } from "react";
+import { useNavigate } from "react-router-dom";
+import { CircleCheck, Sparkles } from "lucide-react";
+import { ErrorBoundary } from "../features/health/ErrorBoundary";
+import { HealthStatus } from "../features/health/HealthStatus";
+import { LoadingStatus } from "../features/health/LoadingStatus";
+import { Button } from "../components/ui/Button";
 
 type FeatureItem = {
-  id: string
-  text: string
-}
+  id: string;
+  text: string;
+};
 
 const features: FeatureItem[] = [
-  { id: '1', text: 'FastAPI Backend with Health Check' },
-  { id: '2', text: 'React 19 with Modern Patterns' },
-  { id: '3', text: 'Native Fetch API Integration' },
-  { id: '4', text: 'Modern Data Fetching' },
-  { id: '5', text: 'Tailwind CSS with Dark Mode' },
-  { id: '6', text: 'Responsive Design' },
-  { id: '7', text: 'Error Boundaries' },
-  { id: '8', text: 'Docker Support' },
-]
+  { id: "1", text: "FastAPI Backend with Health Check" },
+  { id: "2", text: "React 19 with Modern Patterns" },
+  { id: "3", text: "Native Fetch API Integration" },
+  { id: "4", text: "Modern Data Fetching" },
+  { id: "5", text: "Tailwind CSS with Dark Mode" },
+  { id: "6", text: "Responsive Design" },
+  { id: "7", text: "Error Boundaries" },
+  { id: "8", text: "Docker Support" },
+];
 
 export default function Home() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-12 py-8">
@@ -46,7 +46,9 @@ export default function Home() {
               <CircleCheck />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold mb-4 text-card-foreground">Backend Status</h2>
+              <h2 className="text-xl font-semibold mb-4 text-card-foreground">
+                Backend Status
+              </h2>
               <ErrorBoundary>
                 <Suspense fallback={<LoadingStatus />}>
                   <HealthStatus />
@@ -65,7 +67,9 @@ export default function Home() {
               <Sparkles />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold mb-4 text-card-foreground">Features</h2>
+              <h2 className="text-xl font-semibold mb-4 text-card-foreground">
+                Features
+              </h2>
               <ul className="space-y-3 text-muted-foreground">
                 {features.map(({ id, text }) => (
                   <li key={id} className="flex items-center">
@@ -80,13 +84,13 @@ export default function Home() {
       </div>
 
       <div className="flex justify-center space-x-4">
-        <Button onClick={() => navigate('/about')} variant="default">
+        <Button onClick={() => navigate("/about")} variant="default">
           Learn More
         </Button>
-        <Button onClick={() => navigate('/dashboard')} variant="secondary">
+        <Button onClick={() => navigate("/dashboard")} variant="secondary">
           View Dashboard
         </Button>
       </div>
     </div>
-  )
+  );
 }

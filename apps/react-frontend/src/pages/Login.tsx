@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import LoginForm from '../features/auth/LoginForm'
+import { Link } from "react-router-dom";
+import LoginForm from "../features/auth/LoginForm";
 
 export default function Login() {
   return (
@@ -10,8 +10,11 @@ export default function Login() {
             Sign in to your account
           </h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">
-            Or{' '}
-            <Link to="/register" className="font-medium text-primary hover:text-primary/80">
+            Or{" "}
+            <Link
+              to="/register"
+              className="font-medium text-primary hover:text-primary/80"
+            >
               create a new account
             </Link>
           </p>
@@ -19,5 +22,5 @@ export default function Login() {
         <LoginForm />
       </div>
     </div>
-  )
+  );
 }

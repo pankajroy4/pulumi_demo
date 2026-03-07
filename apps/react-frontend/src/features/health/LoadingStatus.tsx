@@ -1,4 +1,4 @@
-import { StatusDot } from '../../components/ui/StatusDot'
+import { StatusDot } from "../../components/ui/StatusDot";
 
 export function LoadingStatus() {
   return (
@@ -6,5 +6,5 @@ export function LoadingStatus() {
       <StatusDot status="loading" />
       <span className="text-gray-600">Checking status...</span>
     </div>
-  )
+  );
 }

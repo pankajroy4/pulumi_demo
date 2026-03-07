@@ -1,29 +1,29 @@
-import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { AppProvider } from '../context/AppContext'
-import { Notification } from '../components/ui/Notification'
-import { ThemeToggle } from '../components/ui/ThemeToggle'
-import { useAuth } from '../context/AuthContext'
-import { Button } from '../components/ui/Button'
+import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { AppProvider } from "../context/AppContext";
+import { Notification } from "../components/ui/Notification";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
+import { useAuth } from "../context/AuthContext";
+import { Button } from "../components/ui/Button";
 
 const publicNavLinks = [
-  { to: '/', label: 'Home' },
-  { to: '/about', label: 'About' },
-] as const
+  { to: "/", label: "Home" },
+  { to: "/about", label: "About" },
+] as const;
 
-const privateNavLinks = [{ to: '/dashboard', label: 'Dashboard' }] as const
+const privateNavLinks = [{ to: "/dashboard", label: "Dashboard" }] as const;
 
 function Navigation() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { isAuthenticated, logout } = useAuth()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
   const linkBase =
-    'text-card-foreground hover:text-primary hover:bg-accent/20 px-3 py-2 rounded-md text-sm font-medium transition-colors'
-  const activeLink = 'text-primary font-semibold underline underline-offset-4'
+    "text-card-foreground hover:text-primary hover:bg-accent/20 px-3 py-2 rounded-md text-sm font-medium transition-colors";
+  const activeLink = "text-primary font-semibold underline underline-offset-4";
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    logout();
+    navigate("/login");
+  };
 
   return (
     <nav className="bg-card text-card-foreground shadow-sm transition-colors">
@@ -34,7 +34,11 @@ function Navigation() {
               <Link
                 key={to}
                 to={to}
-                className={location.pathname === to ? `${linkBase} ${activeLink}` : linkBase}
+                className={
+                  location.pathname === to
+                    ? `${linkBase} ${activeLink}`
+                    : linkBase
+                }
               >
                 {label}
               </Link>
@@ -44,7 +48,11 @@ function Navigation() {
                 <Link
                   key={to}
                   to={to}
-                  className={location.pathname === to ? `${linkBase} ${activeLink}` : linkBase}
+                  className={
+                    location.pathname === to
+                      ? `${linkBase} ${activeLink}`
+                      : linkBase
+                  }
                 >
                   {label}
                 </Link>
@@ -63,7 +71,11 @@ function Navigation() {
             ) : (
               <Link
                 to="/login"
-                className={location.pathname === '/login' ? `${linkBase} ${activeLink}` : linkBase}
+                className={
+                  location.pathname === "/login"
+                    ? `${linkBase} ${activeLink}`
+                    : linkBase
+                }
               >
                 Login
               </Link>
@@ -72,11 +84,11 @@ function Navigation() {
         </div>
       </div>
     </nav>
-  )
+  );
 }
 
 export default function RootLayout() {
-  const currentYear = new Date().getFullYear()
+  const currentYear = new Date().getFullYear();
 
   return (
     <AppProvider>
@@ -95,5 +107,5 @@ export default function RootLayout() {
         <Notification />
       </div>
     </AppProvider>
-  )
+  );
 }

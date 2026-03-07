@@ -1,27 +1,27 @@
-import { useAppState, useAppDispatch, ACTIONS } from '../../context/AppContext'
-import { NotificationType } from '../../types'
+import { useAppState, useAppDispatch, ACTIONS } from "../../context/AppContext";
+import { NotificationType } from "../../types";
 
 const NOTIFICATION_COLORS: Record<NotificationType, string> = {
-  info: 'bg-blue-500 dark:bg-blue-600',
-  success: 'bg-green-500 dark:bg-green-600',
-  error: 'bg-red-500 dark:bg-red-600',
-  warning: 'bg-yellow-500 dark:bg-yellow-600',
-}
+  info: "bg-blue-500 dark:bg-blue-600",
+  success: "bg-green-500 dark:bg-green-600",
+  error: "bg-red-500 dark:bg-red-600",
+  warning: "bg-yellow-500 dark:bg-yellow-600",
+};
 
 export function Notification() {
-  const { notification } = useAppState()
-  const dispatch = useAppDispatch()
+  const { notification } = useAppState();
+  const dispatch = useAppDispatch();
 
-  if (!notification.show) return null
+  if (!notification.show) return null;
 
   const handleClose = () => {
     dispatch({
       type: ACTIONS.UPDATE_NOTIFICATION,
       payload: { show: false },
-    })
-  }
+    });
+  };
 
-  const bgColor = NOTIFICATION_COLORS[notification.type]
+  const bgColor = NOTIFICATION_COLORS[notification.type];
 
   return (
     <div
@@ -39,5 +39,5 @@ export function Notification() {
         ✕
       </button>
     </div>
-  )
+  );
 }
