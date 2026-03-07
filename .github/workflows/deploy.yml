@@ -68,7 +68,7 @@ jobs:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
       - name: Pulumi stack select
-        run: pulumi stack select dev
+        run: pulumi stack select production
         working-directory: infra
 
       - name: Pulumi up (create infra + deploy)
