@@ -1,0 +1,12 @@
+{"timestamp": "2026-03-07T10:28:39.488602", "level": "INFO", "name": "app.main", "message": "Application routes configured", "module": "main", "function": "<module>", "line": 56}
+{"timestamp": "2026-03-07T10:28:40.709352", "level": "INFO", "name": "app.main", "message": "Application routes configured", "module": "main", "function": "<module>", "line": 56}
+{"timestamp": "2026-03-07T10:28:40.709777", "level": "INFO", "name": "app.main", "message": "Starting application", "module": "main", "function": "lifespan", "line": 22}
+{"timestamp": "2026-03-07T10:28:40.752313", "level": "INFO", "name": "app.main", "message": "Application started successfully", "module": "main", "function": "lifespan", "line": 25}
+{"timestamp": "2026-03-07T10:52:43.860897", "level": "INFO", "name": "app.main", "message": "Application routes configured", "module": "main", "function": "<module>", "line": 56}
+{"timestamp": "2026-03-07T10:52:45.103258", "level": "INFO", "name": "app.main", "message": "Application routes configured", "module": "main", "function": "<module>", "line": 56}
+{"timestamp": "2026-03-07T10:52:45.103788", "level": "INFO", "name": "app.main", "message": "Starting application", "module": "main", "function": "lifespan", "line": 22}
+{"timestamp": "2026-03-07T10:52:45.139699", "level": "INFO", "name": "app.main", "message": "Application started successfully", "module": "main", "function": "lifespan", "line": 25}
+{"timestamp": "2026-03-07T11:01:53.220115", "level": "INFO", "name": "app.main", "message": "Application routes configured", "module": "main", "function": "<module>", "line": 56}
+{"timestamp": "2026-03-07T11:01:54.432085", "level": "INFO", "name": "app.main", "message": "Application routes configured", "module": "main", "function": "<module>", "line": 56}
+{"timestamp": "2026-03-07T11:01:54.432524", "level": "INFO", "name": "app.main", "message": "Starting application", "module": "main", "function": "lifespan", "line": 22}
+{"timestamp": "2026-03-07T11:01:54.469454", "level": "INFO", "name": "app.main", "message": "Application started successfully", "module": "main", "function": "lifespan", "line": 25}

@@ -1,0 +1,7 @@
+
+
+config:
+  pumlmi_demo_app-infra:environment: dev-test
+  pumlmi_demo_app-infra:location: eastasia
+  pumlmi_demo_app-infra:dbName: myappdb
+  pumlmi_demo_app-infra:dbUser: myappuser

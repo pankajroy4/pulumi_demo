@@ -1,0 +1,76 @@
+name: CI-CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend dependencies
+        run: |
+          cd apps/python-fast-api
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          cd apps/python-fast-api
+          pytest
+
+  build:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build backend image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/fastapi-backend:latest apps/python-fast-api
+
+      - name: Build frontend image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/react-frontend:latest apps/react-frontend
+
+      - name: Push images
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/fastapi-backend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/react-frontend:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Pulumi
+        uses: pulumi/actions@v5
+
+      - name: Pulumi login
+        run: pulumi login
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Pulumi stack select
+        run: pulumi stack select dev
+        working-directory: infra
+
+      - name: Pulumi up (create infra + deploy)
+        run: pulumi up --yes
+        working-directory: infra

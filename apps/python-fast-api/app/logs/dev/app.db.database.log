@@ -1,0 +1,10 @@
+{"timestamp": "2026-03-07T10:28:40.709884", "level": "INFO", "name": "app.db.database", "message": "Initializing database", "module": "database", "function": "init_db", "line": 92}
+{"timestamp": "2026-03-07T10:28:40.752207", "level": "INFO", "name": "app.db.database", "message": "Database initialized successfully", "module": "database", "function": "init_db", "line": 96}
+{"timestamp": "2026-03-07T10:52:45.103907", "level": "INFO", "name": "app.db.database", "message": "Initializing database", "module": "database", "function": "init_db", "line": 92}
+{"timestamp": "2026-03-07T10:52:45.139590", "level": "INFO", "name": "app.db.database", "message": "Database initialized successfully", "module": "database", "function": "init_db", "line": 96}
+{"timestamp": "2026-03-07T11:01:54.432599", "level": "INFO", "name": "app.db.database", "message": "Initializing database", "module": "database", "function": "init_db", "line": 92}
+{"timestamp": "2026-03-07T11:01:54.469338", "level": "INFO", "name": "app.db.database", "message": "Database initialized successfully", "module": "database", "function": "init_db", "line": 96}
+{"timestamp": "2026-03-07T11:02:33.997507", "level": "DEBUG", "name": "app.db.database", "message": "Creating new database session", "module": "database", "function": "get_db", "line": 75}
+{"timestamp": "2026-03-07T11:02:34.215166", "level": "DEBUG", "name": "app.db.database", "message": "Closing database session", "module": "database", "function": "get_db", "line": 83}
+{"timestamp": "2026-03-07T11:02:34.226491", "level": "DEBUG", "name": "app.db.database", "message": "Creating new database session", "module": "database", "function": "get_db", "line": 75}
+{"timestamp": "2026-03-07T11:02:34.418900", "level": "DEBUG", "name": "app.db.database", "message": "Closing database session", "module": "database", "function": "get_db", "line": 83}

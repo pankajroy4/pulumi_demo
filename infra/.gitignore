@@ -1,0 +1,17 @@
+/bin/
+# Node
+node_modules/
+npm-debug.log
+
+# Python
+__pycache__/
+*.pyc
+.env
+.venv/
+
+# Pulumi
+.pulumi/
+
+# OS
+.DS_Store
+Thumbs.db
