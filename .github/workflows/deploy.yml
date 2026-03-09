@@ -69,9 +69,16 @@ jobs:
           cd apps/react-frontend
           npm install
 
+      # - name: Build React app
+      #   run: |
+      #     cd apps/react-frontend
+      #     npm run build
+
+
       - name: Build React app
         run: |
           cd apps/react-frontend
+          echo "VITE_API_URL=https://pda-prod-api78190a61.azurewebsites.net" > .env.production
           npm run build
 
 
