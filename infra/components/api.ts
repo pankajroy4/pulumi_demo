@@ -38,6 +38,10 @@ export function createApi(
                 {
                     name: "KEYVAULT_URI",
                     value: keyVaultUri,
+                },
+                {
+                    name: "WEBSITES_PORT",
+                    value: "8000",
                 }
             ],
         },
