@@ -1,3 +1,4 @@
+# apps/python-fast-api/app/config/config.py
 import os
 from pathlib import Path
 from functools import lru_cache
@@ -15,7 +16,13 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DATABASE_URL: str = ""
     TEST_DATABASE_URL: Optional[str] = "sqlite+aiosqlite:///./test_app.db"
-    CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
+    # CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
+
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://black-sky-0e3bb3400.2.azurestaticapps.net"
+    ]
     API_PREFIX: str = "/api"
 
     # Database settings
