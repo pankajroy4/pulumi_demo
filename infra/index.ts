@@ -41,7 +41,8 @@ const api = createApi(
     namePrefix,
     resourceGroup.name,
     location,
-    postgres.connectionString,
+    // postgres.connectionString,
+    postgres.host,
     keyVault.vaultUri
 );
 
