@@ -59,7 +59,8 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    command: npm run dev
+    # command: npm run dev
+    command: npm run build
 
   docs:
     container_name: starter-docs

@@ -1,3 +1,4 @@
+// infra/components/postgres.ts
 import * as postgres from "@pulumi/azure-native/dbforpostgresql";
 
 export function createPostgres(
@@ -6,6 +7,8 @@ export function createPostgres(
     location: string,
     subnetId: any
 ) {
+
+
 
     const server = new postgres.Server(`${name}-pg`, {
         resourceGroupName: rg,
@@ -21,6 +24,15 @@ export function createPostgres(
             tier: "Burstable",
         },
     });
+
+
+    const firewall = new postgres.FirewallRule(`${name}-allow-azure`, {
+        resourceGroupName: rg,
+        serverName: server.name,
+        startIpAddress: "0.0.0.0",
+        endIpAddress: "0.0.0.0",
+    });
+
 
     const db = new postgres.Database(`${name}-db`, {
         resourceGroupName: rg,

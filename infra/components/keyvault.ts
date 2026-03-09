@@ -29,6 +29,8 @@
 //     };
 // }
 
+
+// infra/components/keyvault.ts
 import * as pulumi from "@pulumi/pulumi";
 import * as keyvault from "@pulumi/azure-native/keyvault";
 import * as authorization from "@pulumi/azure-native/authorization";

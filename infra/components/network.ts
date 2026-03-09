@@ -1,3 +1,4 @@
+// infra/components/network.ts
 import * as network from "@pulumi/azure-native/network";
 
 export function createNetwork(name: string, rg: any, location: string) {

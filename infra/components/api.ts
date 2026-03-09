@@ -1,3 +1,4 @@
+// infra/components/api.ts
 import * as web from "@pulumi/azure-native/web";
 
 export function createApi(
@@ -24,12 +25,28 @@ export function createApi(
         location,
         serverFarmId: plan.id,
         siteConfig: {
-            linuxFxVersion: "DOCKER|docker.io/YOUR_DOCKER_USERNAME/fastapi-backend:latest",
+            linuxFxVersion: "DOCKER|docker.io/pankajroy4/fastapi-backend:latest",
             alwaysOn: true,
             appSettings: [
                 {
-                    name: "DATABASE_URL",
+                    name: "DB_HOST",
                     value: dbConnection,
+                },
+                {
+                    name: "DB_USER",
+                    value: "pgadmin",
+                },
+                {
+                    name: "DB_PASSWORD",
+                    value: "StrongPassword123!",
+                },
+                {
+                    name: "DB_NAME",
+                    value: "appdb",
+                },
+                {
+                    name: "DB_PORT",
+                    value: "5432",
                 },
                 {
                     name: "JWT_SIGNING_KEY",
