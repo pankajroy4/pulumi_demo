@@ -46,26 +46,31 @@ export function createKeyVault(
     byteLength: 3,
   });
 
-  // shorten prefix BEFORE adding random suffix
-  const baseName = name.substring(0, 12);
+  // sanitize prefix
+  const base = name
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/--+/g, "-")
+    .replace(/-$/, "")
+    .substring(0, 12);
 
-  const vaultName = pulumi.interpolate`${baseName}-kv-${suffix.hex}`;
+  const vaultName = pulumi.interpolate`${base}-kv-${suffix.hex}`;
 
   const vault = new keyvault.Vault(`${name}-kv`, {
     vaultName: vaultName,
     resourceGroupName: rg,
     location,
     properties: {
-      tenantId: clientConfig.then(conf => conf.tenantId),
+      tenantId: clientConfig.then(c => c.tenantId),
       sku: {
         name: "standard",
         family: "A",
       },
       enableRbacAuthorization: true
-    },
+    }
   });
 
   return {
-    vaultUri: vault.properties.vaultUri,
+    vaultUri: vault.properties.vaultUri
   };
 }
