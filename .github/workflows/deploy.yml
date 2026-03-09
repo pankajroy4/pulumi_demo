@@ -99,5 +99,6 @@ jobs:
         working-directory: infra
 
       - name: Deploy infrastructure
-        run: pulumi up --yes --non-interactive
+        # run: pulumi up --yes --non-interactive
+        run: pulumi up --yes --non-interactive --parallel 1
         working-directory: infra
