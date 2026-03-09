@@ -15,8 +15,9 @@ export function useHealthStatus(): Promise<HealthResponse> {
 
 async function fetchHealthStatus(): Promise<HealthResponse> {
   try {
-
-    const API_URL = import.meta.env.VITE_API_URL || "https://pda-prod-api78190a61.azurewebsites.net";
+    const API_URL =
+      import.meta.env.VITE_API_URL ||
+      "https://pda-prod-api78190a61.azurewebsites.net";
 
     const response = await fetch(`${API_URL}/api/health`);
 
@@ -26,7 +27,6 @@ async function fetchHealthStatus(): Promise<HealthResponse> {
 
     const data = (await response.json()) as HealthResponse;
     return data;
-
   } catch (error: unknown) {
     if (error instanceof Error) {
       return { status: "error", message: error.message };
@@ -35,4 +35,3 @@ async function fetchHealthStatus(): Promise<HealthResponse> {
     return { status: "error" };
   }
 }
-
