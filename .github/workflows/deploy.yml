@@ -52,8 +52,31 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/fastapi-backend:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/react-frontend:latest
 
+  frontend-build:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install frontend dependencies
+        run: |
+          cd apps/react-frontend
+          npm install
+
+      - name: Build React app
+        run: |
+          cd apps/react-frontend
+          npm run build
+
+
   deploy:
-    needs: build
+    needs: [build, frontend-build]
     runs-on: ubuntu-latest
 
     steps:
