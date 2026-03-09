@@ -12,9 +12,9 @@ const config = new pulumi.Config();
 const env = config.require("environment");
 const location = config.require("location");
 
-const project = "pulumi-demo-app";
+const project = "pda";
 
-const namePrefix = `${project}-${env}`;
+const namePrefix = `${project}-prod`;
 
 // Resource Group
 const resourceGroup = new resources.ResourceGroup(`${namePrefix}-rg`, {
