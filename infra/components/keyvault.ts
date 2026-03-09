@@ -1,30 +1,72 @@
+// import * as pulumi from "@pulumi/pulumi";
+// import * as keyvault from "@pulumi/azure-native/keyvault";
+// import * as authorization from "@pulumi/azure-native/authorization"; // Import this
+
+// export function createKeyVault(name: string, rg: pulumi.Input<string>, location: string) {
+
+//     // Fetch the current client configuration (Tenant ID, Subscription ID, etc.)
+//     const clientConfig = authorization.getClientConfig();
+
+//     const vault = new keyvault.Vault(`${name}-kv`, {
+//         // Truncate to 24 chars to satisfy Azure naming constraints
+//         vaultName: `${name}-kv`.substring(0, 24), 
+//         resourceGroupName: rg,
+//         location,
+//         properties: {
+//             // Dynamically use the Tenant ID from your active login context
+//             tenantId: clientConfig.then(conf => conf.tenantId),
+//             sku: {
+//                 name: "standard",
+//                 family: "A",
+//             },
+//             accessPolicies: [],
+//             enableSoftDelete: true,
+//         },
+//     });
+
+//     return {
+//         vaultUri: vault.properties.vaultUri,
+//     };
+// }
+
+
 import * as pulumi from "@pulumi/pulumi";
 import * as keyvault from "@pulumi/azure-native/keyvault";
-import * as authorization from "@pulumi/azure-native/authorization"; // Import this
+import * as authorization from "@pulumi/azure-native/authorization";
+import * as random from "@pulumi/random";
 
-export function createKeyVault(name: string, rg: pulumi.Input<string>, location: string) {
+export function createKeyVault(
+  name: string,
+  rg: pulumi.Input<string>,
+  location: string
+) {
 
-    // Fetch the current client configuration (Tenant ID, Subscription ID, etc.)
-    const clientConfig = authorization.getClientConfig();
+  const clientConfig = authorization.getClientConfig();
 
-    const vault = new keyvault.Vault(`${name}-kv`, {
-        // Truncate to 24 chars to satisfy Azure naming constraints
-        vaultName: `${name}-kv`.substring(0, 24), 
-        resourceGroupName: rg,
-        location,
-        properties: {
-            // Dynamically use the Tenant ID from your active login context
-            tenantId: clientConfig.then(conf => conf.tenantId),
-            sku: {
-                name: "standard",
-                family: "A",
-            },
-            accessPolicies: [],
-            enableSoftDelete: true,
-        },
-    });
+  // random suffix to guarantee global uniqueness
+  const suffix = new random.RandomId(`${name}-kv-suffix`, {
+    byteLength: 4,
+  });
 
-    return {
-        vaultUri: vault.properties.vaultUri,
-    };
+  const vaultName = pulumi.interpolate`${name}-kv-${suffix.hex}`
+    .apply(n => n.substring(0, 24));
+
+  const vault = new keyvault.Vault(`${name}-kv`, {
+    vaultName: vaultName,
+    resourceGroupName: rg,
+    location,
+    properties: {
+      tenantId: clientConfig.then(conf => conf.tenantId),
+      sku: {
+        name: "standard",
+        family: "A",
+      },
+      accessPolicies: [],
+      enableSoftDelete: true,
+    },
+  });
+
+  return {
+    vaultUri: vault.properties.vaultUri,
+  };
 }
