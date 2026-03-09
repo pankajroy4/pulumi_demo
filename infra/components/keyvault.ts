@@ -29,7 +29,6 @@
 //     };
 // }
 
-
 import * as pulumi from "@pulumi/pulumi";
 import * as keyvault from "@pulumi/azure-native/keyvault";
 import * as authorization from "@pulumi/azure-native/authorization";
@@ -43,13 +42,14 @@ export function createKeyVault(
 
   const clientConfig = authorization.getClientConfig();
 
-  // random suffix to guarantee global uniqueness
   const suffix = new random.RandomId(`${name}-kv-suffix`, {
-    byteLength: 4,
+    byteLength: 3,
   });
 
-  const vaultName = pulumi.interpolate`${name}-kv-${suffix.hex}`
-    .apply(n => n.substring(0, 24));
+  // shorten prefix BEFORE adding random suffix
+  const baseName = name.substring(0, 12);
+
+  const vaultName = pulumi.interpolate`${baseName}-kv-${suffix.hex}`;
 
   const vault = new keyvault.Vault(`${name}-kv`, {
     vaultName: vaultName,
@@ -61,8 +61,7 @@ export function createKeyVault(
         name: "standard",
         family: "A",
       },
-      accessPolicies: [],
-      enableSoftDelete: true,
+      enableRbacAuthorization: true
     },
   });
 
