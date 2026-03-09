@@ -24,7 +24,8 @@ export function createApi(
         location,
         serverFarmId: plan.id,
         siteConfig: {
-            linuxFxVersion: "PYTHON|3.10",
+            linuxFxVersion: "DOCKER|docker.io/YOUR_DOCKER_USERNAME/fastapi-backend:latest",
+            alwaysOn: true,
             appSettings: [
                 {
                     name: "DATABASE_URL",
