@@ -57,3 +57,4 @@ async function fetchHealthStatus(): Promise<HealthResponse> {
     return { status: "error" };
   }
 }
+
