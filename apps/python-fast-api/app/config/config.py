@@ -5,6 +5,7 @@ from functools import lru_cache
 from typing import Optional, List
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
+from pydantic import field_validator
 
 load_dotenv()
 
@@ -18,11 +19,22 @@ class Settings(BaseSettings):
     TEST_DATABASE_URL: Optional[str] = "sqlite+aiosqlite:///./test_app.db"
     # CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
 
+
     CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
         "https://black-sky-0e3bb3400.2.azurestaticapps.net"
     ]
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v):
+        if isinstance(v, str):
+            return [i.strip() for i in v.split(",")]
+        return v
+
+
+
     API_PREFIX: str = "/api"
 
     # Database settings
