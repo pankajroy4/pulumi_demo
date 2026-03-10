@@ -122,6 +122,12 @@ export function createFrontend(name: string, rg: any, location: string) {
           name: "Free",
           tier: "Free",
       },
+
+      // minimal valid config
+      buildProperties: {
+          appLocation: "apps/react-frontend",
+          appArtifactLocation: "dist",
+      }
   });
 
   const secrets = web.listStaticSiteSecretsOutput({
