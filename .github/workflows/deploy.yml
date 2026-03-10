@@ -146,7 +146,6 @@
 
 # ======================================================================================
 
-
 name: CI-CD
 
 on:
@@ -180,7 +179,6 @@ jobs:
         run: |
           cd apps/python-fast-api
           pytest
-
 
 
 # =========================================================
@@ -239,13 +237,12 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Select stack
-        run: pulumi stack select production || pulumi stack init production
+        run: pulumi stack select production --non-interactive
         working-directory: infra
 
       - name: Deploy infra
         run: pulumi up --yes --non-interactive --parallel 1
         working-directory: infra
-
 
 
 # =========================================================
@@ -263,6 +260,11 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Install Pulumi dependencies
+        run: |
+          cd infra
+          npm install
+
       - name: Install Pulumi CLI
         uses: pulumi/actions@v5
 
@@ -270,6 +272,15 @@ jobs:
         run: pulumi login
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Select stack
+        run: pulumi stack select production --non-interactive
+        working-directory: infra
 
       - name: Get API URL
         id: api
@@ -295,7 +306,6 @@ jobs:
           path: apps/react-frontend/dist
 
 
-
 # =========================================================
 # 5️⃣ Deploy React to Static Web Apps
 # =========================================================
@@ -306,6 +316,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Pulumi dependencies
+        run: |
+          cd infra
+          npm install
+
       - name: Install Pulumi CLI
         uses: pulumi/actions@v5
 
@@ -313,6 +328,15 @@ jobs:
         run: pulumi login
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Select stack
+        run: pulumi stack select production --non-interactive
+        working-directory: infra
 
       - name: Download React build
         uses: actions/download-artifact@v4
