@@ -56,6 +56,7 @@ const frontend = createFrontend(
 
 // Outputs
 export const frontendUrl = frontend.url;
+export const staticWebAppToken = frontend.deploymentToken;
 export const apiUrl = api.apiUrl;
 export const postgresHost = postgres.host;
 export const resourceGroupName = resourceGroup.name;

@@ -78,11 +78,42 @@
 //       url: staticApp.defaultHostname.apply(h => `https://${h}`)
 //   };
 // }
+// // ======================================================================
 
+// import * as web from "@pulumi/azure-native/web";
+
+// export function createFrontend(name: string, rg: any, location: string, apiUrl: any) {
+
+//   const staticApp = new web.StaticSite(`${name}-frontend`, {
+//       resourceGroupName: rg,
+//       location,
+//       sku: {
+//           name: "Free",
+//           tier: "Free",
+//       },
+
+//       repositoryUrl: "https://github.com/pankajroy4/pulumi_demo",
+//       branch: "main",
+
+//       buildProperties: {
+//           appLocation: "apps/react-frontend",
+//           apiLocation: "",
+//           appArtifactLocation: "dist",
+//           appBuildCommand: "npm run build"
+//       },
+//   });
+
+//   return {
+//       url: staticApp.defaultHostname.apply(h => `https://${h}`)
+//   };
+// }
+
+
+// ===================================================================
 
 import * as web from "@pulumi/azure-native/web";
 
-export function createFrontend(name: string, rg: any, location: string, apiUrl: any) {
+export function createFrontend(name: string, rg: any, location: string) {
 
   const staticApp = new web.StaticSite(`${name}-frontend`, {
       resourceGroupName: rg,
@@ -91,19 +122,17 @@ export function createFrontend(name: string, rg: any, location: string, apiUrl: 
           name: "Free",
           tier: "Free",
       },
+  });
 
-      repositoryUrl: "https://github.com/pankajroy4/pulumi_demo",
-      branch: "main",
-
-      buildProperties: {
-          appLocation: "apps/react-frontend",
-          apiLocation: "",
-          appArtifactLocation: "dist",
-          appBuildCommand: "npm run build"
-      },
+  const secrets = web.listStaticSiteSecretsOutput({
+      name: staticApp.name,
+      resourceGroupName: rg,
+  }, {
+      dependsOn: [staticApp]
   });
 
   return {
-      url: staticApp.defaultHostname.apply(h => `https://${h}`)
+      url: staticApp.defaultHostname.apply(h => `https://${h}`),
+      deploymentToken: secrets.properties.apiKey
   };
 }
