@@ -50,8 +50,7 @@ const api = createApi(
 const frontend = createFrontend(
     namePrefix,
     resourceGroup.name,
-    location,
-    api.apiUrl
+    location
 );
 
 // Outputs
