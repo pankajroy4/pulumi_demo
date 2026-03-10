@@ -22,7 +22,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
-        "https://black-sky-0e3bb3400.2.azurestaticapps.net",
+        # "https://black-sky-0e3bb3400.2.azurestaticapps.net",
+        "https://blue-forest-0cd063900.4.azurestaticapps.net",
     ]
 
     @field_validator("CORS_ORIGINS", mode="before")

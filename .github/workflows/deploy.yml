@@ -145,7 +145,6 @@
 
 
 # ======================================================================================
-
 name: CI-CD
 
 on:
@@ -293,10 +292,16 @@ jobs:
           cd apps/react-frontend
           npm install
 
+      - name: Create production env file
+        run: |
+          cd apps/react-frontend
+          echo "VITE_API_URL=${{ steps.api.outputs.api_url }}" > .env.production
+          echo "Generated env file:"
+          cat .env.production
+
       - name: Build React
         run: |
           cd apps/react-frontend
-          echo "VITE_API_BASE_URL=${{ steps.api.outputs.api_url }}" > .env.production
           npm run build
 
       - name: Upload build artifact
