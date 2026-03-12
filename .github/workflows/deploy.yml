@@ -761,7 +761,7 @@ jobs:
       - name: Create production env
         run: |
           cd apps/react-frontend
-          echo "VITE_API_BASE_URL=${{ steps.api.outputs.api_url }}" > .env.production
+          echo "VITE_API_URL=${{ steps.api.outputs.api_url }}" > .env.production
 
       - name: Build React
         run: |
