@@ -1,42 +1,9 @@
-// import * as pulumi from "@pulumi/pulumi";
-// import * as keyvault from "@pulumi/azure-native/keyvault";
-// import * as authorization from "@pulumi/azure-native/authorization"; // Import this
-
-// export function createKeyVault(name: string, rg: pulumi.Input<string>, location: string) {
-
-//     // Fetch the current client configuration (Tenant ID, Subscription ID, etc.)
-//     const clientConfig = authorization.getClientConfig();
-
-//     const vault = new keyvault.Vault(`${name}-kv`, {
-//         // Truncate to 24 chars to satisfy Azure naming constraints
-//         vaultName: `${name}-kv`.substring(0, 24), 
-//         resourceGroupName: rg,
-//         location,
-//         properties: {
-//             // Dynamically use the Tenant ID from your active login context
-//             tenantId: clientConfig.then(conf => conf.tenantId),
-//             sku: {
-//                 name: "standard",
-//                 family: "A",
-//             },
-//             accessPolicies: [],
-//             enableSoftDelete: true,
-//         },
-//     });
-
-//     return {
-//         vaultUri: vault.properties.vaultUri,
-//     };
-// }
-
-
-// infra/components/keyvault.ts
 import * as pulumi from "@pulumi/pulumi";
 import * as keyvault from "@pulumi/azure-native/keyvault";
 import * as authorization from "@pulumi/azure-native/authorization";
 import * as random from "@pulumi/random";
 
-export function createKeyVault( name: string, rg: pulumi.Input<string>, location: string) {
+export function createKeyVault(name: string, rg: pulumi.Input<string>, location: string) {
 
   const clientConfig = authorization.getClientConfig();
 
@@ -44,18 +11,14 @@ export function createKeyVault( name: string, rg: pulumi.Input<string>, location
     byteLength: 3,
   });
 
-  // shorten prefix BEFORE adding random suffix
-  // const baseName = name.substring(0, 12);
-    const baseName = "pda-prod"
-
-  const vaultName = pulumi.interpolate`${baseName}-kv-${suffix.hex}`;
+  const vaultName = pulumi.interpolate`${name}-kv-${suffix.hex}`;
 
   const vault = new keyvault.Vault(`${name}-kv`, {
-    vaultName: vaultName,
+    vaultName,
     resourceGroupName: rg,
     location,
     properties: {
-      tenantId: clientConfig.then(conf => conf.tenantId),
+      tenantId: clientConfig.then(c => c.tenantId),
       sku: {
         name: "standard",
         family: "A",
@@ -64,7 +27,34 @@ export function createKeyVault( name: string, rg: pulumi.Input<string>, location
     },
   });
 
+  const dbPassword = new random.RandomPassword(`${name}-db-password`, {
+    length: 20,
+    special: true
+  });
+
+  const dbPasswordSecret = new keyvault.Secret(`${name}-db-secret`, {
+    resourceGroupName: rg,
+    vaultName: vault.name,
+    properties: {
+      value: dbPassword.result
+    }
+  });
+
+  const jwtSecret = new keyvault.Secret(`${name}-jwt-secret`, {
+    resourceGroupName: rg,
+    vaultName: vault.name,
+    properties: {
+      value: new random.RandomPassword(`${name}-jwt`, {
+        length: 32
+      }).result
+    }
+  });
+
   return {
+    vault,
     vaultUri: vault.properties.vaultUri,
+    dbPassword: dbPassword.result,
+    dbPasswordSecretUri: dbPasswordSecret.id,
+    jwtSecretUri: jwtSecret.id
   };
 }

@@ -1,5 +1,8 @@
+// infra/index.ts
+
 import * as pulumi from "@pulumi/pulumi";
 import * as resources from "@pulumi/azure-native/resources";
+import * as authorization from "@pulumi/azure-native/authorization";
 
 import { createNetwork } from "./components/network";
 import { createKeyVault } from "./components/keyvault";
@@ -7,56 +10,121 @@ import { createPostgres } from "./components/postgres";
 import { createApi } from "./components/api";
 import { createFrontend } from "./components/frontend";
 
+// =====================================================
+// Pulumi config
+// =====================================================
+
 const config = new pulumi.Config();
+const location = config.get("location") || "eastus";
 
-const env = config.require("environment");
-const location = config.require("location");
+// =====================================================
+// Environment (Pulumi stack)
+// =====================================================
 
+const stack = pulumi.getStack(); // dev-test / production
+
+// naming convention
 const project = "pda";
+const namePrefix = `${project}-${stack}`;
 
-const namePrefix = `${project}-prod`;
-
+// =====================================================
 // Resource Group
+// =====================================================
+
 const resourceGroup = new resources.ResourceGroup(`${namePrefix}-rg`, {
     location,
 });
 
+// =====================================================
 // Network
-const network = createNetwork(namePrefix, resourceGroup.name, location);
+// =====================================================
 
+const network = createNetwork(
+    namePrefix,
+    resourceGroup.name,
+    location
+);
+
+// =====================================================
 // KeyVault
-const keyVault = createKeyVault(namePrefix, resourceGroup.name, location);
+// =====================================================
 
+const keyVault = createKeyVault(
+    namePrefix,
+    resourceGroup.name,
+    location
+);
 
-// Postgres
+// =====================================================
+// PostgreSQL
+// =====================================================
+
 const postgres = createPostgres(
     namePrefix,
     resourceGroup.name,
     location,
-    network.subnetId
+    network.dbSubnetId,
+    network.vnetId,
+    keyVault.dbPassword
 );
 
-// API
+// =====================================================
+// API (FastAPI backend)
+// =====================================================
+
 const api = createApi(
     namePrefix,
     resourceGroup.name,
     location,
-    // postgres.connectionString,
     postgres.host,
-    keyVault.vaultUri
+    network.appSubnetId,
+    keyVault.dbPasswordSecretUri,
+    keyVault.jwtSecretUri
 );
 
-// Frontend
+// =====================================================
+// KeyVault Access for App Service
+// =====================================================
+
+const keyVaultSecretsUserRole =
+    "/providers/Microsoft.Authorization/roleDefinitions/" +
+    "4633458b-17de-408a-b874-0445c86b69e6"; // Key Vault Secrets User
+
+// new authorization.RoleAssignment(`${namePrefix}-kv-access`, {
+//     scope: keyVault.vault.id,
+//     roleDefinitionId: keyVaultSecretsUserRole,
+//     principalId: api.identityPrincipalId,
+// });
+
+new authorization.RoleAssignment(`${namePrefix}-kv-access`, {
+    scope: keyVault.vault.id,
+    roleDefinitionId: keyVaultSecretsUserRole,
+    principalId: api.identityPrincipalId,
+    principalType: "ServicePrincipal",
+});
+
+// =====================================================
+// Frontend (React)
+// =====================================================
+
 const frontend = createFrontend(
     namePrefix,
     resourceGroup.name,
     location
 );
 
-// Outputs
+// =====================================================
+// Pulumi Outputs (required by manager)
+// =====================================================
+
 export const frontendUrl = frontend.url;
-export const staticWebAppToken = frontend.deploymentToken;
+
 export const apiUrl = api.apiUrl;
+
 export const postgresHost = postgres.host;
+
 export const resourceGroupName = resourceGroup.name;
+
 export const keyVaultUri = keyVault.vaultUri;
+
+export const staticWebAppToken = frontend.deploymentToken;

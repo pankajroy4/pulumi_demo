@@ -1,105 +1,156 @@
-// infra/components/postgres.ts
-import * as postgres from "@pulumi/azure-native/dbforpostgresql";
-import * as pulumi from "@pulumi/pulumi";
+// import * as postgres from "@pulumi/azure-native/dbforpostgresql";
+// import * as dns from "@pulumi/azure-native/privatedns";
+// import * as pulumi from "@pulumi/pulumi";
 
 // export function createPostgres(
 //     name: string,
 //     rg: any,
 //     location: string,
-//     subnetId: any
+//     subnetId: any,
+//     vnetId: any,
+//     password: pulumi.Input<string>
 // ) {
 
+//     const stack = pulumi.getStack();
 
+//     const adminUser = "pgadmin";
+//     const databaseName = "appdb";
+
+//     const dnsZone = new dns.PrivateZone(`${name}-pg-dns`, {
+//         resourceGroupName: rg,
+//         privateZoneName: "privatelink.postgres.database.azure.com",
+//         location: "global",
+//     });
+
+//     new dns.VirtualNetworkLink(`${name}-dns-link`, {
+//         resourceGroupName: rg,
+//         privateZoneName: dnsZone.name,
+//         virtualNetwork: {
+//             id: vnetId,
+//         },
+//         registrationEnabled: false,
+//     });
 
 //     const server = new postgres.Server(`${name}-pg`, {
 //         resourceGroupName: rg,
 //         location,
+//         administratorLogin: adminUser,
+//         administratorLoginPassword: password,
 //         version: "14",
-//         administratorLogin: "pgadmin",
-//         administratorLoginPassword: "StrongPassword123!",
+
 //         storage: {
-//             storageSizeGB: 32,
+//             storageSizeGB: stack === "production" ? 128 : 32,
 //         },
-//         sku: {
-//             name: "Standard_B1ms",
-//             tier: "Burstable",
-//         },
+
+//         sku: stack === "production"
+//             ? {
+//                 name: "Standard_D2s_v3",
+//                 tier: "GeneralPurpose"
+//               }
+//             : {
+//                 name: "Standard_B1ms",
+//                 tier: "Burstable"
+//               },
+
+//         network: {
+//             delegatedSubnetResourceId: subnetId,
+//             privateDnsZoneArmResourceId: dnsZone.id,
+//         }
 //     });
 
-
-//     const firewall = new postgres.FirewallRule(`${name}-allow-azure`, {
+//     new postgres.Database(`${name}-db`, {
 //         resourceGroupName: rg,
 //         serverName: server.name,
-//         startIpAddress: "0.0.0.0",
-//         endIpAddress: "0.0.0.0",
+//         databaseName: databaseName,
 //     });
-
-
-//     const db = new postgres.Database(`${name}-db`, {
-//         resourceGroupName: rg,
-//         serverName: server.name,
-//         databaseName: "appdb",
-//     });
-
-//     // const connectionString = server.fullyQualifiedDomainName.apply(
-//     //     host =>
-//     //         `postgresql://pgadmin:StrongPassword123!@${host}:5432/appdb`
-//     // );
-
-//     const connectionString = pulumi.interpolate`postgresql://${adminUser}:${adminPassword}@${server.fullyQualifiedDomainName}:5432/${databaseName}?sslmode=require`;
 
 //     return {
-//         host: server.fullyQualifiedDomainName,
-//         connectionString
+//         host: server.fullyQualifiedDomainName
 //     };
 // }
 
 
+
+import * as postgres from "@pulumi/azure-native/dbforpostgresql";
+import * as dns from "@pulumi/azure-native/privatedns";
+import * as pulumi from "@pulumi/pulumi";
+
 export function createPostgres(
     name: string,
-    rg: any,
+    rg: pulumi.Input<string>,
     location: string,
-    subnetId: any
+    subnetId: pulumi.Input<string>,
+    vnetId: pulumi.Input<string>,
+    password: pulumi.Input<string>
 ) {
 
+    const stack = pulumi.getStack();
+
     const adminUser = "pgadmin";
-    const adminPassword = "StrongPassword123!";
     const databaseName = "appdb";
 
+    /**
+     * Private DNS zone for Postgres
+     */
+    const dnsZone = new dns.PrivateZone(`${name}-pg-dns`, {
+        resourceGroupName: rg,
+        privateZoneName: "privatelink.postgres.database.azure.com",
+        location: "global",
+    });
+
+    /**
+     * Link VNet with DNS zone
+     */
+    new dns.VirtualNetworkLink(`${name}-dns-link`, {
+        resourceGroupName: rg,
+        privateZoneName: dnsZone.name,
+        location: "global",   // IMPORTANT FIX
+        virtualNetwork: {
+            id: vnetId,
+        },
+        registrationEnabled: false,
+    });
+
+    /**
+     * PostgreSQL Flexible Server
+     */
     const server = new postgres.Server(`${name}-pg`, {
         resourceGroupName: rg,
         location,
-        version: "14",
         administratorLogin: adminUser,
-        administratorLoginPassword: adminPassword,
+        administratorLoginPassword: password,
+        version: "14",
+
         storage: {
-            storageSizeGB: 32,
+            storageSizeGB: stack === "production" ? 128 : 32,
         },
-        sku: {
-            name: "Standard_B1ms",
-            tier: "Burstable",
-        },
+
+        sku: stack === "production"
+            ? {
+                name: "Standard_D2s_v3",
+                tier: "GeneralPurpose"
+            }
+            : {
+                name: "Standard_B1ms",
+                tier: "Burstable"
+            },
+
+        network: {
+            delegatedSubnetResourceId: subnetId,
+            privateDnsZoneArmResourceId: dnsZone.id,
+        }
     });
 
-    const firewall = new postgres.FirewallRule(`${name}-allow-azure`, {
+    /**
+     * Database
+     */
+    new postgres.Database(`${name}-db`, {
         resourceGroupName: rg,
         serverName: server.name,
-        startIpAddress: "0.0.0.0",
-        endIpAddress: "0.0.0.0",
+        databaseName: databaseName,
     });
-
-    const db = new postgres.Database(`${name}-db`, {
-        resourceGroupName: rg,
-        serverName: server.name,
-        databaseName,
-    });
-
-    const connectionString = pulumi.interpolate`
-postgresql://${adminUser}@${server.name}:${adminPassword}@${server.fullyQualifiedDomainName}:5432/${databaseName}?sslmode=require
-`;
 
     return {
-        host: server.fullyQualifiedDomainName,
-        connectionString
+        host: server.fullyQualifiedDomainName
     };
 }
