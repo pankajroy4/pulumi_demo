@@ -1,3 +1,4 @@
+import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import AsyncAdaptedQueuePool
@@ -12,18 +13,28 @@ logger = setup_logger(__name__)
 def get_database_url() -> str:
     """
     Constructs the database URL based on configuration.
-    Prioritizes TEST_DATABASE_URL if set in 'testing' environment.
-    Returns PostgreSQL URL if credentials are provided, otherwise falls back to SQLite.
+    Priority order:
+    1. DATABASE_URL env variable
+    2. Testing database
+    3. Build PostgreSQL URL from DB_* variables
     """
+
+    if os.getenv("DATABASE_URL"):
+        return os.getenv("DATABASE_URL")
+
     if settings.ENVIRONMENT == "testing" and settings.TEST_DATABASE_URL:
         return settings.TEST_DATABASE_URL
 
     if settings.DB_NAME:
-        # PostgreSQL connection
         password = quote_plus(settings.DB_PASSWORD) if settings.DB_PASSWORD else ""
-        return f"postgresql+asyncpg://{settings.DB_USER}:{password}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
 
-    raise ValueError("No database URL found")
+        return (
+            f"postgresql+asyncpg://{settings.DB_USER}:{password}"
+            f"@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
+            "?ssl=require"
+        )
+
+    raise ValueError("No database configuration found")
 
 
 def create_engine_with_retry(database_url: str):
@@ -49,7 +60,6 @@ def create_engine_with_retry(database_url: str):
                 "pool_timeout": 30,
             }
         )
-
     return create_async_engine(database_url, connect_args=connect_args, **pooling_args)
 
 
@@ -69,16 +79,19 @@ class Base(DeclarativeBase):
 async def get_db() -> AsyncSession:
     """
     Dependency that provides a database session.
-    Ensures proper handling of connections and error cases.
     """
+
     session = AsyncSessionLocal()
     logger.debug("Creating new database session")
+
     try:
         yield session
+
     except Exception as e:
         logger.error(f"Database session error: {str(e)}")
         await session.rollback()
         raise
+
     finally:
         logger.debug("Closing database session")
         await session.close()
@@ -86,14 +99,17 @@ async def get_db() -> AsyncSession:
 
 async def init_db() -> None:
     """
-    Initialize database tables and perform any startup database operations.
-    Includes retry logic for initial connection.
+    Initialize database tables and perform startup operations.
     """
+
     logger.info("Initializing database")
+
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+
         logger.info("Database initialized successfully")
+
     except Exception as e:
         logger.error(f"Error initializing database: {str(e)}")
         raise

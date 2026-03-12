@@ -70,7 +70,7 @@
 // }
 
 
-
+// infra/components/postgres.ts
 import * as postgres from "@pulumi/azure-native/dbforpostgresql";
 import * as dns from "@pulumi/azure-native/privatedns";
 import * as pulumi from "@pulumi/pulumi";
