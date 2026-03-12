@@ -11,16 +11,6 @@ logger = setup_logger(__name__)
 
 
 def get_database_url() -> str:
-    """
-    Constructs the database URL based on configuration.
-    Priority order:
-    1. DATABASE_URL env variable
-    2. Testing database
-    3. Build PostgreSQL URL from DB_* variables
-    """
-
-    if os.getenv("DATABASE_URL"):
-        return os.getenv("DATABASE_URL")
 
     if settings.ENVIRONMENT == "testing" and settings.TEST_DATABASE_URL:
         return settings.TEST_DATABASE_URL
