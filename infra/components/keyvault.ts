@@ -50,22 +50,6 @@ export function createKeyVault(name: string, rg: pulumi.Input<string>, location:
     }
   });
 
-  // return {
-  //   vault,
-  //   vaultUri: vault.properties.vaultUri,
-  //   dbPassword: dbPassword.result,
-  //   dbPasswordSecretUri: dbPasswordSecret.id,
-  //   jwtSecretUri: jwtSecret.id
-  // };
-
-  // return {
-  //   vault,
-  //   vaultUri: vault.properties.vaultUri,
-  //   dbPassword: dbPassword.result,
-  //   dbPasswordSecretUri: pulumi.interpolate`${vault.properties.vaultUri}secrets/${dbPasswordSecret.name}`,
-  //   jwtSecretUri: pulumi.interpolate`${vault.properties.vaultUri}secrets/${jwtSecret.name}`
-  // };
-
   return {
     vault,
     vaultUri: vault.properties.vaultUri,
