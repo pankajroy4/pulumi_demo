@@ -31,7 +31,7 @@ def get_database_url() -> str:
         return (
             f"postgresql+asyncpg://{settings.DB_USER}:{password}"
             f"@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
-            "?ssl=require"
+            "?sslmode=require"
         )
 
     raise ValueError("No database configuration found")
@@ -55,8 +55,8 @@ def create_engine_with_retry(database_url: str):
         pooling_args.update(
             {
                 "poolclass": AsyncAdaptedQueuePool,
-                "pool_size": 20,
-                "max_overflow": 10,
+                "pool_size": 5,
+                "max_overflow": 5,
                 "pool_timeout": 30,
             }
         )
