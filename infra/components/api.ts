@@ -146,7 +146,9 @@ export function createApi(
 
                 {
                     name: "DB_USER",
-                    value: "pgadmin"
+                    value: pulumi.output(postgresHost).apply(h =>
+                        `pgadmin@${h.split(".")[0]}`
+                    )
                 },
 
                 {
