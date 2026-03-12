@@ -83,7 +83,7 @@
 //     };
 // }
 
-
+// infra/components/api.ts
 import * as web from "@pulumi/azure-native/web";
 import * as pulumi from "@pulumi/pulumi";
 

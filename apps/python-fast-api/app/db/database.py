@@ -21,7 +21,6 @@ def get_database_url() -> str:
         return (
             f"postgresql+asyncpg://{settings.DB_USER}:{password}"
             f"@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
-            "?sslmode=require"
         )
 
     raise ValueError("No database configuration found")
@@ -32,7 +31,8 @@ def create_engine_with_retry(database_url: str):
     Creates an async engine with retry logic and appropriate configuration
     based on the database type.
     """
-    connect_args = {}
+    # connect_args = {}
+    connect_args = {"ssl": True}
     pooling_args = {
         "pool_pre_ping": True,
         "pool_recycle": 3600,
