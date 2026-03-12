@@ -145,18 +145,247 @@
 
 
 # ======================================================================================
+# # .github/workflows/deploy.yml
+# name: CI-CD
+
+# on:
+#   push:
+#     branches:
+#       - main2
+
+
+# jobs:
+
+# # =========================================================
+# # 1️⃣ CI - Run backend tests
+# # =========================================================
+#   ci:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Setup Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.12"
+
+#       - name: Install dependencies
+#         run: |
+#           cd apps/python-fast-api
+#           pip install -r requirements.txt
+
+#       - name: Run tests
+#         run: |
+#           cd apps/python-fast-api
+#           pytest
+
+
+# # =========================================================
+# # 2️⃣ Build backend container
+# # =========================================================
+#   build-backend:
+#     needs: ci
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Login DockerHub
+#         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+#       - name: Build backend image
+#         run: |
+#           docker build -t ${{ secrets.DOCKER_USERNAME }}/fastapi-backend:latest apps/python-fast-api
+
+#       - name: Push backend image
+#         run: |
+#           docker push ${{ secrets.DOCKER_USERNAME }}/fastapi-backend:latest
+
+
+# # =========================================================
+# # 3️⃣ Deploy Infrastructure via Pulumi
+# # =========================================================
+#   deploy-infra:
+#     needs: build-backend
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Setup Node
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: "20"
+
+#       - name: Install Pulumi dependencies
+#         run: |
+#           cd infra
+#           npm install
+
+#       - name: Install Pulumi CLI
+#         uses: pulumi/actions@v5
+
+#       - name: Pulumi Login
+#         run: pulumi login
+#         env:
+#           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+#       - name: Azure Login
+#         uses: azure/login@v2
+#         with:
+#           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+#       - name: Select stack
+#         run: pulumi stack select production --non-interactive
+#         working-directory: infra
+
+#       - name: Deploy infra
+#         run: pulumi up --yes --non-interactive --parallel 1
+#         working-directory: infra
+
+
+# # =========================================================
+# # 4️⃣ Build React Frontend
+# # =========================================================
+#   build-frontend:
+#     needs: deploy-infra
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Setup Node
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: "20"
+
+#       - name: Install Pulumi dependencies
+#         run: |
+#           cd infra
+#           npm install
+
+#       - name: Install Pulumi CLI
+#         uses: pulumi/actions@v5
+
+#       - name: Pulumi Login
+#         run: pulumi login
+#         env:
+#           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+#       - name: Azure Login
+#         uses: azure/login@v2
+#         with:
+#           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+#       - name: Select stack
+#         run: pulumi stack select production --non-interactive
+#         working-directory: infra
+
+#       - name: Get API URL
+#         id: api
+#         run: |
+#           API_URL=$(cd infra && pulumi stack output apiUrl)
+#           echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+
+#       - name: Install frontend dependencies
+#         run: |
+#           cd apps/react-frontend
+#           npm install
+
+#       - name: Create production env file
+#         run: |
+#           cd apps/react-frontend
+#           echo "VITE_API_URL=${{ steps.api.outputs.api_url }}" > .env.production
+#           echo "Generated env file:"
+#           cat .env.production
+
+#       - name: Build React
+#         run: |
+#           cd apps/react-frontend
+#           npm run build
+
+#       - name: Upload build artifact
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: react-build
+#           path: apps/react-frontend/dist
+
+
+# # =========================================================
+# # 5️⃣ Deploy React to Static Web Apps
+# # =========================================================
+#   deploy-frontend:
+#     needs: build-frontend
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Install Pulumi dependencies
+#         run: |
+#           cd infra
+#           npm install
+
+#       - name: Install Pulumi CLI
+#         uses: pulumi/actions@v5
+
+#       - name: Pulumi Login
+#         run: pulumi login
+#         env:
+#           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+#       - name: Azure Login
+#         uses: azure/login@v2
+#         with:
+#           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+#       - name: Select stack
+#         run: pulumi stack select production --non-interactive
+#         working-directory: infra
+
+#       - name: Download React build
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: react-build
+#           path: apps/react-frontend/dist
+
+#       - name: Get Static Web App token
+#         id: swa
+#         run: |
+#           TOKEN=$(cd infra && pulumi stack output staticWebAppToken)
+#           echo "token=$TOKEN" >> $GITHUB_OUTPUT
+
+#       - name: Deploy to Azure Static Web Apps
+#         uses: Azure/static-web-apps-deploy@v1
+#         with:
+#           azure_static_web_apps_api_token: ${{ steps.swa.outputs.token }}
+#           repo_token: ${{ secrets.GITHUB_TOKEN }}
+#           action: upload
+#           app_location: "apps/react-frontend/dist"
+#           skip_app_build: true
+
+
+# =========================================================================
+
+
 name: CI-CD
 
 on:
   push:
     branches:
-      - main2
+      - main3
+
+
+env:
+  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/fastapi-backend
+  IMAGE_TAG: ${{ github.sha }}
 
 
 jobs:
 
 # =========================================================
-# 1️⃣ CI - Run backend tests
+# 1️⃣ CI - Backend tests
 # =========================================================
   ci:
     runs-on: ubuntu-latest
@@ -181,7 +410,7 @@ jobs:
 
 
 # =========================================================
-# 2️⃣ Build backend container
+# 2️⃣ Build + Push Backend Docker Image
 # =========================================================
   build-backend:
     needs: ci
@@ -191,15 +420,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Login DockerHub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build backend image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/fastapi-backend:latest apps/python-fast-api
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
+          -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Push backend image
+      - name: Build Docker image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/fastapi-backend:latest
+          docker build \
+          -t $DOCKER_IMAGE:$IMAGE_TAG \
+          apps/python-fast-api
+
+      - name: Push Docker image
+        run: |
+          docker push $DOCKER_IMAGE:$IMAGE_TAG
 
 
 # =========================================================
@@ -217,13 +450,13 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install Pulumi dependencies
+      - name: Install Pulumi CLI
+        uses: pulumi/setup-pulumi@v2
+
+      - name: Install dependencies
         run: |
           cd infra
           npm install
-
-      - name: Install Pulumi CLI
-        uses: pulumi/actions@v5
 
       - name: Pulumi Login
         run: pulumi login
@@ -239,8 +472,13 @@ jobs:
         run: pulumi stack select production --non-interactive
         working-directory: infra
 
-      - name: Deploy infra
-        run: pulumi up --yes --non-interactive --parallel 1
+      - name: Set backend image
+        run: |
+          pulumi config set backendImage $DOCKER_IMAGE:$IMAGE_TAG
+        working-directory: infra
+
+      - name: Deploy infrastructure
+        run: pulumi up --yes --non-interactive
         working-directory: infra
 
 
@@ -258,14 +496,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
 
-      - name: Install Pulumi dependencies
+      - name: Install Pulumi CLI
+        uses: pulumi/setup-pulumi@v2
+
+      - name: Install infra dependencies
         run: |
           cd infra
           npm install
-
-      - name: Install Pulumi CLI
-        uses: pulumi/actions@v5
 
       - name: Pulumi Login
         run: pulumi login
@@ -292,11 +531,10 @@ jobs:
           cd apps/react-frontend
           npm install
 
-      - name: Create production env file
+      - name: Create production env
         run: |
           cd apps/react-frontend
-          echo "VITE_API_URL=${{ steps.api.outputs.api_url }}" > .env.production
-          echo "Generated env file:"
+          echo "VITE_API_BASE_URL=${{ steps.api.outputs.api_url }}" > .env.production
           cat .env.production
 
       - name: Build React
@@ -312,7 +550,7 @@ jobs:
 
 
 # =========================================================
-# 5️⃣ Deploy React to Static Web Apps
+# 5️⃣ Deploy React to Azure Static Web Apps
 # =========================================================
   deploy-frontend:
     needs: build-frontend
@@ -321,13 +559,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Pulumi dependencies
+      - name: Install Pulumi CLI
+        uses: pulumi/setup-pulumi@v2
+
+      - name: Install infra dependencies
         run: |
           cd infra
           npm install
-
-      - name: Install Pulumi CLI
-        uses: pulumi/actions@v5
 
       - name: Pulumi Login
         run: pulumi login
@@ -355,7 +593,7 @@ jobs:
           TOKEN=$(cd infra && pulumi stack output staticWebAppToken)
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
 
-      - name: Deploy to Azure Static Web Apps
+      - name: Deploy to Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ steps.swa.outputs.token }}
