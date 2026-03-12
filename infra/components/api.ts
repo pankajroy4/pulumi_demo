@@ -180,7 +180,7 @@ export function createApi(
                 {
                     name: "CORS_ORIGINS",
                     value: stack === "production"
-                        ? JSON.stringify(["https://lively-wave-04961ca00.4.azurestaticapps.net"])
+                        ? JSON.stringify(["https://zealous-pebble-0add45f00.6.azurestaticapps.net"])
                         : JSON.stringify(["http://localhost:5173"])
                 },
 
