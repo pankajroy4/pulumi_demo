@@ -84,7 +84,6 @@
 // }
 
 
-
 import * as web from "@pulumi/azure-native/web";
 import * as pulumi from "@pulumi/pulumi";
 
@@ -112,17 +111,10 @@ export function createApi(
     const plan = new web.AppServicePlan(`${name}-plan`, {
         resourceGroupName: rg,
         location,
-        sku: stack === "production"
-            ? { name: "B1", tier: "Basic" }   // change later if quota available
-            : { name: "B1", tier: "Basic" },
+        sku: { name: "B1", tier: "Basic" },
         kind: "Linux",
         reserved: true,
     });
-
-    /**
-     * DATABASE_URL
-     */
-    const databaseUrl = pulumi.interpolate`postgresql://pgadmin:@${postgresHost}:5432/appdb`;
 
     /**
      * Web App
@@ -144,31 +136,69 @@ export function createApi(
 
             appSettings: [
 
+                /**
+                 * Database settings
+                 */
                 {
-                    name: "DATABASE_URL",
-                    value: databaseUrl
+                    name: "DB_HOST",
+                    value: postgresHost
                 },
 
+                {
+                    name: "DB_USER",
+                    value: "pgadmin"
+                },
+
+                {
+                    name: "DB_PASSWORD",
+                    value: pulumi.interpolate`@Microsoft.KeyVault(SecretUri=${dbPasswordSecretUri})`
+                },
+
+                {
+                    name: "DB_NAME",
+                    value: "appdb"
+                },
+
+                {
+                    name: "DB_PORT",
+                    value: "5432"
+                },
+
+                /**
+                 * JWT Secret
+                 */
                 {
                     name: "JWT_SIGNING_KEY",
                     value: pulumi.interpolate`@Microsoft.KeyVault(SecretUri=${jwtSecretUri})`
                 },
 
+                /**
+                 * CORS
+                 */
                 {
                     name: "CORS_ORIGINS",
                     value: stack === "production"
-                        ? "https://production-frontend-domain"
-                        : "http://localhost:5173"
+                        ? JSON.stringify(["https://lively-wave-04961ca00.4.azurestaticapps.net"])
+                        : JSON.stringify(["http://localhost:5173"])
                 },
 
+                /**
+                 * Azure App Service settings
+                 */
                 {
                     name: "WEBSITE_VNET_ROUTE_ALL",
                     value: "1"
                 },
 
-                { name: "WEBSITES_PORT", value: "8000" },
+                {
+                    name: "WEBSITES_PORT",
+                    value: "8000"
+                },
 
-                { name: "ENVIRONMENT", value: stack }
+                {
+                    name: "ENVIRONMENT",
+                    value: stack
+                }
             ],
         },
     });
