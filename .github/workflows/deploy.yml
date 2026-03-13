@@ -3,7 +3,7 @@ name: CI-CD
 on:
   push:
     branches:
-      - main4
+      - Deploy_with_Docker_using_ci_cd
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/fastapi-backend
