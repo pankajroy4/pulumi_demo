@@ -1,3 +1,5 @@
+// apps/react-frontend/src/hooks/useHealthStatus.ts
+
 type HealthResponse = {
   status: "healthy" | "error" | "loading";
   message?: string;
