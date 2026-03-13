@@ -98,7 +98,7 @@ new authorization.RoleAssignment(`${namePrefix}-acr-pull`, {
   roleDefinitionId: acrPullRole,
   principalId: api.identityPrincipalId,
   principalType: "ServicePrincipal",
-});
+}, { dependsOn: [acr.registry] });
 
 // Pulumi Outputs
 export const frontendUrl = frontend.url;

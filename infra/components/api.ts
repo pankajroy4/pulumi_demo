@@ -17,7 +17,8 @@ export function createApi(
   const stack = pulumi.getStack();
   // Pulumi config
   const config = new pulumi.Config();
-  const backendImage = config.require("backendImage");
+  // const backendImage = config.require("backendImage");
+  const backendImage = config.get("backendImage");
 
   // App Service Plan
   const plan = new web.AppServicePlan(`${name}-plan`, {
