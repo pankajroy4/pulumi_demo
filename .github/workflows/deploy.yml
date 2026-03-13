@@ -102,6 +102,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -120,11 +124,6 @@ jobs:
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
       - name: Select stack
         run: pulumi stack select production --non-interactive
         working-directory: infra
@@ -136,14 +135,13 @@ jobs:
           ACR_NAME=$(cd infra && pulumi stack output acrName)
           LOGIN_SERVER="$ACR_NAME.azurecr.io"
 
-          echo "acr_name=$ACR_NAME" >> $GITHUB_OUTPUT
           echo "login_server=$LOGIN_SERVER" >> $GITHUB_OUTPUT
 
       # Pass container image to Pulumi
       - name: Set backend image
         run: |
           pulumi config set backendImage \
-          ${{ steps.acr.outputs.login_server }}/fastapi-backend:${{ github.sha }}
+          ${{ steps.acr.outputs.login_server }}/${IMAGE_NAME}:${IMAGE_TAG}
         working-directory: infra
 
       - name: Deploy infrastructure
