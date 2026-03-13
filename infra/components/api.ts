@@ -10,7 +10,8 @@ export function createApi(
   appSubnetId: pulumi.Input<string>,
   dbPasswordSecretUri: pulumi.Input<string>,
   jwtSecretUri: pulumi.Input<string>,
-  frontendHost: pulumi.Input<string> 
+  frontendHost: pulumi.Input<string>,
+  acrLoginServer: pulumi.Input<string>  
 ) {
 
   const stack = pulumi.getStack();
@@ -42,6 +43,7 @@ export function createApi(
     siteConfig: {
       linuxFxVersion: pulumi.interpolate`DOCKER|${backendImage}`,
       alwaysOn: true,
+      acrUseManagedIdentityCreds: true,
       cors: {
         allowedOrigins: [
           pulumi.interpolate`https://${frontendHost}`
@@ -49,6 +51,7 @@ export function createApi(
         supportCredentials: true
       },
       appSettings: [
+        { name: "DOCKER_REGISTRY_SERVER_URL", value: pulumi.interpolate`https://${acrLoginServer}` },
         // Database settings
         { name: "DB_HOST", value: postgresHost },
         { name: "DB_USER", value: "pgadmin" },

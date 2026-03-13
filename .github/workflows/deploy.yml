@@ -3,14 +3,14 @@ name: CI-CD
 on:
   push:
     branches:
-      - Deploy_with_Docker_using_ci_cd
+      - main4
 
 env:
-  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/fastapi-backend
+  IMAGE_NAME: fastapi-backend
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-  # ------------ Backend Tests -------------------------
+   # ------------ Backend Tests -------------------------
   ci:
     runs-on: ubuntu-latest
 
@@ -31,7 +31,7 @@ jobs:
           cd apps/python-fast-api
           pytest
 
-  # ------------ Build & Push Docker Image -------------------------
+  # --------- Build Docker Image + Push to Azure Container Registry -----------
   build-backend:
     needs: ci
     runs-on: ubuntu-latest
@@ -39,20 +39,57 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login DockerHub
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login \
-          -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      # Azure login (required for ACR)
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      # Setup Node (needed to read Pulumi outputs)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: pulumi/setup-pulumi@v2
+
+      - name: Install infra dependencies
+        run: |
+          cd infra
+          npm install
+
+      - name: Pulumi Login
+        run: pulumi login
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Select stack
+        run: pulumi stack select production --non-interactive
+        working-directory: infra
+
+      # Get ACR login server from Pulumi
+      - name: Get ACR login server
+        id: acr
+        run: |
+          LOGIN_SERVER=$(cd infra && pulumi stack output acrLoginServer)
+          echo "login_server=$LOGIN_SERVER" >> $GITHUB_OUTPUT
+
+      # Login to ACR
+      - name: Login to ACR
+        run: |
+          az acr login --name $(echo ${{ steps.acr.outputs.login_server }} | cut -d'.' -f1)
+
+      # Build docker image
       - name: Build image
         run: |
           docker build \
-            -t $DOCKER_IMAGE:$IMAGE_TAG \
+            -t ${{ steps.acr.outputs.login_server }}/${IMAGE_NAME}:${IMAGE_TAG} \
             apps/python-fast-api
 
+      # Push docker image
       - name: Push image
         run: |
-          docker push $DOCKER_IMAGE:$IMAGE_TAG
+          docker push \
+            ${{ steps.acr.outputs.login_server }}/${IMAGE_NAME}:${IMAGE_TAG}
 
   # ------------ Deploy Infrastructure (Pulumi) -------------------------
   deploy-infra:
@@ -89,9 +126,18 @@ jobs:
         run: pulumi stack select production --non-interactive
         working-directory: infra
 
+      # Get ACR login server
+      - name: Get ACR login server
+        id: acr
+        run: |
+          LOGIN_SERVER=$(cd infra && pulumi stack output acrLoginServer)
+          echo "login_server=$LOGIN_SERVER" >> $GITHUB_OUTPUT
+
+      # Pass container image to Pulumi
       - name: Set backend image
         run: |
-          pulumi config set backendImage $DOCKER_IMAGE:$IMAGE_TAG
+          pulumi config set backendImage \
+          ${{ steps.acr.outputs.login_server }}/fastapi-backend:${{ github.sha }}
         working-directory: infra
 
       - name: Deploy infrastructure
@@ -154,7 +200,7 @@ jobs:
           name: react-build
           path: apps/react-frontend/dist
 
-  # ------------ Deploy React to Static Web Apps -------------------------
+  # ---------- Deploy React to Azure Static Web Apps -----------
   deploy-frontend:
     needs: build-frontend
     runs-on: ubuntu-latest

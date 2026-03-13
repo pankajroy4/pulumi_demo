@@ -8,6 +8,7 @@ import { createKeyVault } from "./components/keyvault";
 import { createPostgres } from "./components/postgres";
 import { createApi } from "./components/api";
 import { createFrontend } from "./components/frontend";
+import { createAcr } from "./components/acr";
 
 // Pulumi config
 const config = new pulumi.Config();
@@ -24,6 +25,13 @@ const namePrefix = `${project}-${stack}`;
 const resourceGroup = new resources.ResourceGroup(`${namePrefix}-rg`, {
     location,
 });
+
+// Azure container registry
+const acr = createAcr(
+  namePrefix,
+  resourceGroup.name,
+  location
+);
 
 // Network
 const network = createNetwork(
@@ -65,7 +73,8 @@ const api = createApi(
     network.appSubnetId,
     keyVault.dbPasswordSecretUri,
     keyVault.jwtSecretUri,
-    frontend.hostname 
+    frontend.hostname,
+    acr.loginServer
 );
 
 // KeyVault Access for App Service
@@ -80,6 +89,17 @@ new authorization.RoleAssignment(`${namePrefix}-kv-access`, {
     principalType: "ServicePrincipal",
 });
 
+const acrPullRole =
+  "/providers/Microsoft.Authorization/roleDefinitions/" +
+  "7f951dda-4ed3-4680-a7ca-43fe172d538d"; // AcrPull
+
+new authorization.RoleAssignment(`${namePrefix}-acr-pull`, {
+  scope: acr.registry.id,
+  roleDefinitionId: acrPullRole,
+  principalId: api.identityPrincipalId,
+  principalType: "ServicePrincipal",
+});
+
 // Pulumi Outputs
 export const frontendUrl = frontend.url;
 export const apiUrl = api.apiUrl;
@@ -87,3 +107,5 @@ export const postgresHost = postgres.host;
 export const resourceGroupName = resourceGroup.name;
 export const keyVaultUri = keyVault.vaultUri;
 export const staticWebAppToken = frontend.deploymentToken;
+export const acrName = acr.name;
+export const acrLoginServer = acr.loginServer;
