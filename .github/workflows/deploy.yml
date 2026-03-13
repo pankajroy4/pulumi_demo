@@ -3,7 +3,7 @@ name: CI-CD
 on:
   push:
     branches:
-      - Deploy_with_ACR_using_ci_cd
+      - main
 
 concurrency:
   group: production-deploy
@@ -14,10 +14,7 @@ env:
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-
-# ---------------------------------------------------
-# Backend Tests
-# ---------------------------------------------------
+  # -------------- Backend Tests --------------
   test-backend:
     runs-on: ubuntu-latest
 
@@ -36,10 +33,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pytest
 
-
-# ---------------------------------------------------
-# Deploy Base Infrastructure (ACR, DB, VNet)
-# ---------------------------------------------------
+  # -------------- Deploy Base Infrastructure (ACR, DB, VNet) --------------
   deploy-infra-base:
     needs: test-backend
     runs-on: ubuntu-latest
@@ -73,10 +67,7 @@ jobs:
 
       - run: pulumi up --yes --non-interactive
 
-
-# ---------------------------------------------------
-# Build & Push Docker Image
-# ---------------------------------------------------
+  # -------------- Build & Push Docker Image --------------
   build-backend:
     needs: deploy-infra-base
     runs-on: ubuntu-latest
@@ -132,10 +123,7 @@ jobs:
           docker push \
           ${{ steps.acr.outputs.login_server }}/${IMAGE_NAME}:${IMAGE_TAG}
 
-
-# ---------------------------------------------------
-# Deploy Backend Container
-# ---------------------------------------------------
+  # -------------- Deploy Backend Container --------------
   deploy-backend:
     needs: build-backend
     runs-on: ubuntu-latest
@@ -174,10 +162,7 @@ jobs:
 
       - run: pulumi up --yes --non-interactive
 
-
-# ---------------------------------------------------
-# Build Frontend
-# ---------------------------------------------------
+  # -------------- Build Frontend --------------
   build-frontend:
     needs: deploy-backend
     runs-on: ubuntu-latest
@@ -219,10 +204,7 @@ jobs:
           name: react-build
           path: apps/react-frontend/dist
 
-
-# ---------------------------------------------------
-# Deploy Frontend
-# ---------------------------------------------------
+  # -------------- Deploy Frontend --------------
   deploy-frontend:
     needs: build-frontend
     runs-on: ubuntu-latest
