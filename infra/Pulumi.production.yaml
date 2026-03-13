@@ -3,3 +3,4 @@ config:
   pumlmi_demo_app-infra:location: eastasia
   pumlmi_demo_app-infra:dbName: myappdb
   pumlmi_demo_app-infra:dbUser: myappuser
+  pumlmi_demo_app-infra:backendImage: temp

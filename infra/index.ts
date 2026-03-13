@@ -28,7 +28,7 @@ const resourceGroup = new resources.ResourceGroup(`${namePrefix}-rg`, {
 
 // Azure container registry
 const acr = createAcr(
-  namePrefix,
+  namePrefix.replace(/-/g, ""),
   resourceGroup.name,
   location
 );

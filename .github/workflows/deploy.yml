@@ -10,9 +10,16 @@ env:
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-   # ------------ Backend Tests -------------------------
-  ci:
+
+  # ---------------------------------------------------
+  # Backend Tests
+  # ---------------------------------------------------
+  test-backend:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: apps/python-fast-api
 
     steps:
       - uses: actions/checkout@v4
@@ -22,30 +29,29 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: |
-          cd apps/python-fast-api
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Run tests
-        run: |
-          cd apps/python-fast-api
-          pytest
+        run: pytest
 
-  # --------- Build Docker Image + Push to Azure Container Registry -----------
+
+  # ---------------------------------------------------
+  # Build + Push Docker Image
+  # ---------------------------------------------------
   build-backend:
-    needs: ci
+    needs: test-backend
     runs-on: ubuntu-latest
+
+    outputs:
+      login_server: ${{ steps.acr.outputs.login_server }}
 
     steps:
       - uses: actions/checkout@v4
 
-      # Azure login (required for ACR)
-      - name: Azure Login
-        uses: azure/login@v2
+      - uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # Setup Node (needed to read Pulumi outputs)
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -53,9 +59,8 @@ jobs:
       - uses: pulumi/setup-pulumi@v2
 
       - name: Install infra dependencies
-        run: |
-          cd infra
-          npm install
+        run: npm install
+        working-directory: infra
 
       - name: Pulumi Login
         run: pulumi login
@@ -66,35 +71,32 @@ jobs:
         run: pulumi stack select production --non-interactive
         working-directory: infra
 
-      # Get ACR info
-      - name: Get ACR info
+      - name: Get ACR login server
         id: acr
         run: |
-          ACR_NAME=$(cd infra && pulumi stack output acrName)
-          LOGIN_SERVER="$ACR_NAME.azurecr.io"
-
-          echo "acr_name=$ACR_NAME" >> $GITHUB_OUTPUT
+          LOGIN_SERVER=$(pulumi stack output acrLoginServer)
           echo "login_server=$LOGIN_SERVER" >> $GITHUB_OUTPUT
+        working-directory: infra
 
-      # Login to ACR
       - name: Login to ACR
         run: |
-          az acr login --name ${{ steps.acr.outputs.acr_name }}
+          az acr login --name $(echo ${{ steps.acr.outputs.login_server }} | cut -d'.' -f1)
 
-      # Build docker image
-      - name: Build image
+      - name: Build Docker Image
         run: |
           docker build \
             -t ${{ steps.acr.outputs.login_server }}/${IMAGE_NAME}:${IMAGE_TAG} \
             apps/python-fast-api
 
-      # Push docker image
-      - name: Push image
+      - name: Push Docker Image
         run: |
           docker push \
             ${{ steps.acr.outputs.login_server }}/${IMAGE_NAME}:${IMAGE_TAG}
 
-  # ------------ Deploy Infrastructure (Pulumi) -------------------------
+
+  # ---------------------------------------------------
+  # Deploy Infrastructure
+  # ---------------------------------------------------
   deploy-infra:
     needs: build-backend
     runs-on: ubuntu-latest
@@ -109,15 +111,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: infra/package-lock.json
 
       - uses: pulumi/setup-pulumi@v2
 
       - name: Install infra dependencies
-        run: |
-          cd infra
-          npm install
+        run: npm install
+        working-directory: infra
 
       - name: Pulumi Login
         run: pulumi login
@@ -128,30 +127,27 @@ jobs:
         run: pulumi stack select production --non-interactive
         working-directory: infra
 
-      # Get ACR info
-      - name: Get ACR info
-        id: acr
-        run: |
-          ACR_NAME=$(cd infra && pulumi stack output acrName)
-          LOGIN_SERVER="$ACR_NAME.azurecr.io"
-
-          echo "login_server=$LOGIN_SERVER" >> $GITHUB_OUTPUT
-
-      # Pass container image to Pulumi
       - name: Set backend image
         run: |
           pulumi config set backendImage \
-          ${{ steps.acr.outputs.login_server }}/${IMAGE_NAME}:${IMAGE_TAG}
+          ${{ needs.build-backend.outputs.login_server }}/${IMAGE_NAME}:${IMAGE_TAG}
         working-directory: infra
 
       - name: Deploy infrastructure
         run: pulumi up --yes --non-interactive
         working-directory: infra
 
-  # ------------ Build React Frontend -------------------------
+
+  # ---------------------------------------------------
+  # Build Frontend
+  # ---------------------------------------------------
   build-frontend:
     needs: deploy-infra
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: apps/react-frontend
 
     steps:
       - uses: actions/checkout@v4
@@ -159,15 +155,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: apps/react-frontend/package-lock.json
 
       - uses: pulumi/setup-pulumi@v2
 
       - name: Install infra dependencies
-        run: |
-          cd infra
-          npm install
+        run: npm install
+        working-directory: infra
 
       - name: Pulumi Login
         run: pulumi login
@@ -181,30 +174,29 @@ jobs:
       - name: Get API URL
         id: api
         run: |
-          API_URL=$(cd infra && pulumi stack output apiUrl)
+          API_URL=$(pulumi stack output apiUrl)
           echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+        working-directory: infra
 
       - name: Install frontend dependencies
-        run: |
-          cd apps/react-frontend
-          npm install
+        run: npm install
 
       - name: Create production env
         run: |
-          cd apps/react-frontend
           echo "VITE_API_URL=${{ steps.api.outputs.api_url }}" > .env.production
 
       - name: Build React
-        run: |
-          cd apps/react-frontend
-          npm run build
+        run: npm run build
 
       - uses: actions/upload-artifact@v4
         with:
           name: react-build
           path: apps/react-frontend/dist
 
-  # ---------- Deploy React to Azure Static Web Apps -----------
+
+  # ---------------------------------------------------
+  # Deploy Frontend
+  # ---------------------------------------------------
   deploy-frontend:
     needs: build-frontend
     runs-on: ubuntu-latest
@@ -215,9 +207,8 @@ jobs:
       - uses: pulumi/setup-pulumi@v2
 
       - name: Install infra dependencies
-        run: |
-          cd infra
-          npm install
+        run: npm install
+        working-directory: infra
 
       - name: Pulumi Login
         run: pulumi login
@@ -236,8 +227,9 @@ jobs:
       - name: Get Static Web App token
         id: swa
         run: |
-          TOKEN=$(cd infra && pulumi stack output staticWebAppToken)
+          TOKEN=$(pulumi stack output staticWebAppToken)
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
+        working-directory: infra
 
       - name: Deploy to Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
