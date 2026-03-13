@@ -66,17 +66,20 @@ jobs:
         run: pulumi stack select production --non-interactive
         working-directory: infra
 
-      # Get ACR login server from Pulumi
-      - name: Get ACR login server
+      # Get ACR info
+      - name: Get ACR info
         id: acr
         run: |
-          LOGIN_SERVER=$(cd infra && pulumi stack output acrLoginServer)
+          ACR_NAME=$(cd infra && pulumi stack output acrName)
+          LOGIN_SERVER="$ACR_NAME.azurecr.io"
+
+          echo "acr_name=$ACR_NAME" >> $GITHUB_OUTPUT
           echo "login_server=$LOGIN_SERVER" >> $GITHUB_OUTPUT
 
       # Login to ACR
       - name: Login to ACR
         run: |
-          az acr login --name $(echo ${{ steps.acr.outputs.login_server }} | cut -d'.' -f1)
+          az acr login --name ${{ steps.acr.outputs.acr_name }}
 
       # Build docker image
       - name: Build image
@@ -126,11 +129,14 @@ jobs:
         run: pulumi stack select production --non-interactive
         working-directory: infra
 
-      # Get ACR login server
-      - name: Get ACR login server
+      # Get ACR info
+      - name: Get ACR info
         id: acr
         run: |
-          LOGIN_SERVER=$(cd infra && pulumi stack output acrLoginServer)
+          ACR_NAME=$(cd infra && pulumi stack output acrName)
+          LOGIN_SERVER="$ACR_NAME.azurecr.io"
+
+          echo "acr_name=$ACR_NAME" >> $GITHUB_OUTPUT
           echo "login_server=$LOGIN_SERVER" >> $GITHUB_OUTPUT
 
       # Pass container image to Pulumi
