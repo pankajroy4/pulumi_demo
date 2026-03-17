@@ -65,6 +65,11 @@ jobs:
 
       - run: pulumi stack select production --non-interactive
 
+      - name: Set Pulumi secrets
+        run: |
+          pulumi config set dbPassword "${{ secrets.DB_PASSWORD }}" --secret
+          pulumi config set jwtSecret "${{ secrets.JWT_SECRET }}" --secret
+
       - run: pulumi up --yes --non-interactive
 
   # -------------- Build & Push Docker Image --------------
@@ -154,6 +159,11 @@ jobs:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
       - run: pulumi stack select production --non-interactive
+
+      - name: Set Pulumi secrets
+        run: |
+          pulumi config set dbPassword "${{ secrets.DB_PASSWORD }}" --secret
+          pulumi config set jwtSecret "${{ secrets.JWT_SECRET }}" --secret
 
       - name: Set backend image
         run: |

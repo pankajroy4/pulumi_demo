@@ -13,6 +13,8 @@ import { createAcr } from "./components/acr";
 // Pulumi config
 const config = new pulumi.Config();
 const location = config.get("location") || "eastasia";
+const dbPassword = config.requireSecret("dbPassword");
+const jwtSecret = config.requireSecret("jwtSecret");
 
 // Environment (Pulumi stack)
 const stack = pulumi.getStack();   // dev-test or production
@@ -44,7 +46,9 @@ const network = createNetwork(
 const keyVault = createKeyVault(
     namePrefix,
     resourceGroup.name,
-    location
+    location,
+    dbPassword,
+    jwtSecret
 );
 
 // PostgreSQL
@@ -54,7 +58,7 @@ const postgres = createPostgres(
     location,
     network.dbSubnetId,
     network.vnetId,
-    keyVault.dbPassword
+    dbPassword
 );
 
 // Frontend (React)
