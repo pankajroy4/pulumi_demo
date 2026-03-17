@@ -3,7 +3,13 @@ import * as keyvault from "@pulumi/azure-native/keyvault";
 import * as authorization from "@pulumi/azure-native/authorization";
 import * as random from "@pulumi/random";
 
-export function createKeyVault(name: string, rg: pulumi.Input<string>, location: string) {
+export function createKeyVault(
+  name: string,
+  rg: pulumi.Input<string>,
+  location: string,
+  dbPassword: pulumi.Input<string>,
+  jwtSecret: pulumi.Input<string>
+){
 
   const clientConfig = authorization.getClientConfig();
 
@@ -27,34 +33,26 @@ export function createKeyVault(name: string, rg: pulumi.Input<string>, location:
     },
   });
 
-  const dbPassword = new random.RandomPassword(`${name}-db-password`, {
-    length: 20,
-    special: true
-  });
-
   const dbPasswordSecret = new keyvault.Secret(`${name}-db-secret`, {
     resourceGroupName: rg,
     vaultName: vault.name,
     properties: {
-      value: dbPassword.result
+      value: dbPassword
     }
   });
 
-  const jwtSecret = new keyvault.Secret(`${name}-jwt-secret`, {
+  const jwtSecretResource = new keyvault.Secret(`${name}-jwt-secret`, {
     resourceGroupName: rg,
     vaultName: vault.name,
     properties: {
-      value: new random.RandomPassword(`${name}-jwt`, {
-        length: 32
-      }).result
+      value: jwtSecret
     }
   });
 
   return {
     vault,
     vaultUri: vault.properties.vaultUri,
-    dbPassword: dbPassword.result,
     dbPasswordSecretUri: pulumi.interpolate`${vault.properties.vaultUri}secrets/${dbPasswordSecret.name}/`,
-    jwtSecretUri: pulumi.interpolate`${vault.properties.vaultUri}secrets/${jwtSecret.name}/`
+    jwtSecretUri: pulumi.interpolate`${vault.properties.vaultUri}secrets/${jwtSecretResource.name}/`
   };
 }
